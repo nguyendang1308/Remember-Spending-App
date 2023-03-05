@@ -1,6 +1,6 @@
 # personal
 
-A new Flutter project.
+This is an app for note something you spend to buy or something
 
 ## Getting Started
 
