@@ -1,7 +1,5 @@
 // ignore_for_file: sort_child_properties_last, prefer_const_constructors, duplicate_ignore
 
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:personal/widgets/chart.dart';
 import 'package:personal/widgets/new_transaction.dart';
