@@ -1,7 +1,7 @@
 // ignore_for_file: sort_child_properties_last, prefer_const_constructors, duplicate_ignore
 
 import 'dart:typed_data';
-
+import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -104,15 +104,31 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<String> saveImage(Uint8List bytes) async {
+    await [Permission.storage].request();
+
+    final time = DateTime.now()
+        .toIso8601String()
+        .replaceAll('.', '-')
+        .replaceAll(':', '-');
+    final name = 'screenshot_$time';
+    final result = await ImageGallerySaver.saveImage(bytes, name: name);
+
+    return result['filePath'];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Screenshot(
       controller: controller,
       child: Scaffold(
         appBar: AppBar(
-          leading: Icon(
-            Icons.arrow_back,
-            color: Theme.of(context).primaryColor,
+          leading: ElevatedButton(
+            onPressed: () => FlutterExitApp.exitApp(),
+            child: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).primaryColor,
+            ),
           ),
           title: Container(
             alignment: Alignment.center,
@@ -159,18 +175,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  Future<String> saveImage(Uint8List bytes) async {
-    await [Permission.storage].request();
-
-    final time = DateTime.now()
-        .toIso8601String()
-        .replaceAll('.', '-')
-        .replaceAll(':', '-');
-    final name = 'screenshot_$time';
-    final result = await ImageGallerySaver.saveImage(bytes, name: name);
-
-    return result['filePath'];
   }
 }
