@@ -1,6 +1,6 @@
 // ignore_for_file: sort_child_properties_last, prefer_const_constructors, duplicate_ignore
 
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
@@ -11,7 +11,14 @@ import 'package:personal/widgets/transaction_list.dart';
 import 'package:personal/models/transaction.dart';
 import 'package:screenshot/screenshot.dart';
 
-void main() => runApp(Personal());
+void main() {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations([
+  //   DeviceOrientation.portraitUp,
+  //   DeviceOrientation.portraitDown,
+  // ]);
+  runApp(Personal());
+}
 
 class Personal extends StatefulWidget {
   const Personal({super.key});
@@ -60,6 +67,8 @@ class _HomePageState extends State<HomePage> {
     //   date: DateTime.now(),
     // ),
   ];
+
+  bool _showChart = true;
 
   List<Transaction> get _recentTransactions {
     return _userTransaction.where((tx) {
@@ -119,53 +128,97 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final appBar = AppBar(
+      leading: ElevatedButton(
+        onPressed: () => FlutterExitApp.exitApp(),
+        child: Icon(
+          Icons.arrow_back,
+          color: Theme.of(context).primaryColor,
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+        ),
+      ),
+      title: Container(
+        alignment: Alignment.center,
+        child: Text(
+          "Quản Lý Hũ Chi Tiêu",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
+        ),
+      ),
+      backgroundColor: Colors.white,
+      actions: <Widget>[
+        IconButton(
+          onPressed: () async {
+            final img = await controller.capture();
+            if (img == null) return;
+            await saveImage(img);
+          },
+          icon: Icon(
+            Icons.screen_share,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.add,
+            color: Theme.of(context).primaryColor,
+          ),
+          onPressed: () => _startAddNewTransaction(context),
+        ),
+      ],
+    );
+    final txListWidget = Container(
+      child: TransactionList(_userTransaction, _deleteTransaction),
+      height: (mediaQuery.size.height -
+              appBar.preferredSize.height -
+              mediaQuery.padding.top) *
+          0.55,
+    );
     return Screenshot(
       controller: controller,
       child: Scaffold(
-        appBar: AppBar(
-          leading: ElevatedButton(
-            onPressed: () => FlutterExitApp.exitApp(),
-            child: Icon(
-              Icons.arrow_back,
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
-          title: Container(
-            alignment: Alignment.center,
-            child: Text(
-              "Quản Lý Hũ Chi Tiêu",
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
-            ),
-          ),
-          backgroundColor: Colors.white,
-          actions: <Widget>[
-            IconButton(
-              onPressed: () async {
-                final img = await controller.capture();
-                if (img == null) return;
-                await saveImage(img);
-              },
-              icon: Icon(
-                Icons.screen_share,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.add,
-                color: Theme.of(context).primaryColor,
-              ),
-              onPressed: () => _startAddNewTransaction(context),
-            ),
-          ],
-        ),
+        appBar: appBar,
         body: Column(
           //mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Chart(_recentTransactions),
-            TransactionList(_userTransaction, _deleteTransaction),
+            if (isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text('Chart'),
+                  Switch(
+                    value: _showChart,
+                    onChanged: (val) {
+                      setState(() {
+                        _showChart = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (!isLandscape)
+              Container(
+                child: Chart(_recentTransactions),
+                height: (mediaQuery.size.height -
+                        appBar.preferredSize.height -
+                        mediaQuery.padding.top) *
+                    0.3,
+              ),
+            if (!isLandscape) txListWidget,
+            if (isLandscape)
+              _showChart
+                  ? Container(
+                      child: Chart(_recentTransactions),
+                      height: (mediaQuery.size.height -
+                              appBar.preferredSize.height -
+                              mediaQuery.padding.top) *
+                          0.7,
+                    )
+                  : txListWidget,
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

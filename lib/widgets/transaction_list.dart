@@ -13,26 +13,30 @@ class TransactionList extends StatelessWidget {
     return Container(
       height: 300,
       child: transactions.isEmpty
-          ? Column(
-              children: [
-                SizedBox(
-                  height: 50,
-                ),
-                Container(
-                  height: 200,
-                  child: Image.asset(
-                    'assets/images/waiting.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  "List Is Empty",
-                  style: TextStyle(fontSize: 20),
-                ),
-              ],
+          ? LayoutBuilder(
+              builder: (ctx, constraint) {
+                return Column(
+                  children: [
+                    Text(
+                      "No Transaction Added Yet!",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Container(
+                      height: constraint.maxHeight * 0.7,
+                      child: Image.asset(
+                        'assets/images/waiting.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                );
+              },
             )
           : ListView.builder(
               itemBuilder: (ctx, index) {
@@ -57,11 +61,21 @@ class TransactionList extends StatelessWidget {
                       ),
                       subtitle: Text(DateFormat('hh:mm MM/dd/yyyy')
                           .format(transactions[index].date)),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        color: Theme.of(context).errorColor,
-                        onPressed: () => deleteTx(transactions[index].id),
-                      ),
+                      trailing: MediaQuery.of(context).size.width > 460
+                          ? TextButton.icon(
+                              onPressed: () => deleteTx(transactions[index].id),
+                              icon: Icon(Icons.delete),
+                              label: Text(
+                                'Delete',
+                                style: TextStyle(
+                                    color: Theme.of(context).errorColor),
+                              ),
+                            )
+                          : IconButton(
+                              icon: Icon(Icons.delete),
+                              color: Theme.of(context).errorColor,
+                              onPressed: () => deleteTx(transactions[index].id),
+                            ),
                     ),
                   ),
                 );
